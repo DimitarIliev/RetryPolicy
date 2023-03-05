@@ -1,4 +1,5 @@
 using Polly;
+using Polly.Contrib.WaitAndRetry;
 using Polly.Extensions.Http;
 using RetryPolicy.Services;
 
@@ -36,10 +37,12 @@ app.Run();
 
 static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
 {
+    var delay = Backoff.DecorrelatedJitterBackoffV2(medianFirstRetryDelay: TimeSpan.FromSeconds(1), retryCount: 5);
+
     return HttpPolicyExtensions
         .HandleTransientHttpError()
         .OrResult(msg => msg.StatusCode == System.Net.HttpStatusCode.NotFound)
-        .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(2), (response, timeSpan, nmRetry, context) =>
+        .WaitAndRetryAsync(delay, (response, timeSpan, nmRetry, context) =>
         {
             Console.WriteLine($"Number of retry attempt: {nmRetry} within {timeSpan.TotalMilliseconds}ms.");
         });
