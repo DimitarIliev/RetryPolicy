@@ -16,7 +16,8 @@ builder.Services.AddHttpClient<ILocationWeatherService, LocationWeatherService>(
 {
     client.BaseAddress = new Uri(builder.Configuration["BaseUrl"]);
 })
-.AddPolicyHandler(GetRetryPolicy());
+.AddPolicyHandler(GetRetryPolicy())
+.AddPolicyHandler(GetCircuitBreakerPolicy());
 
 var app = builder.Build();
 
@@ -46,4 +47,11 @@ static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
         {
             Console.WriteLine($"Number of retry attempt: {nmRetry} within {timeSpan.TotalMilliseconds}ms.");
         });
+}
+
+static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy()
+{
+    return HttpPolicyExtensions
+        .HandleTransientHttpError()
+        .CircuitBreakerAsync(5, TimeSpan.FromSeconds(30));
 }
