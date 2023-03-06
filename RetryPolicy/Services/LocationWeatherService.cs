@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace RetryPolicy.Services
 {
@@ -16,7 +17,9 @@ namespace RetryPolicy.Services
 
             var content = await response.Content.ReadAsStringAsync();
 
-            return JsonSerializer.Deserialize<IEnumerable<WeatherForecast>>(content)!;
+            var result = JsonConvert.DeserializeObject<IEnumerable<WeatherForecast>>(content);
+
+            return result;
         }
     }
 }
